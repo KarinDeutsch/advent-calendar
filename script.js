@@ -16,7 +16,7 @@ const days = [{
     thumb: `assets/thumbnails/day1_thumb.jpg`,
     freeImage: `assets/free/day1_free.jpg`,
     type: "choice",
-    freeLink: "https://yourblog.com/day1",
+    freeLink: "https://goldeneggtech.wordpress.com/2025/12/01/top-3-free-coding-playgrounds-to-practice-instantly-beginner-friendly-guide/",
     premiumLink: "https://your-payhip.com/item-day-1"
   },
   {
@@ -205,77 +205,58 @@ const days = [{
   }
 ];
 
-// ---- Main Preview Modal ----
-const modalHtml = `
-<div id="ig-modal" class="ig-modal" inert aria-hidden="true">
-  <div class="ig-modal-card" role="dialog" aria-modal="true">
-    <button class="ig-close" aria-label="Close">&times;</button>
-    <div class="ig-media">
-      <img id="ig-modal-img" src="" alt="Free content">
-    </div>
-    <div class="ig-caption">
-      <p class="ig-caption-text">Enjoy this free preview — want the full PDF?</p>
-      <a id="ig-buy-btn" class="ig-buy" target="_blank" rel="noopener">Get the full PDF</a>
-    </div>
-  </div>
-</div>
-`;
-document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-const modal = document.getElementById('ig-modal');
-const modalImg = document.getElementById('ig-modal-img');
-const modalBuyBtn = document.getElementById('ig-buy-btn');
-const modalClose = document.querySelector('.ig-close');
-
-function openModal(imageSrc, currentItem) {
-  modalImg.src = imageSrc;
-  modal.currentItem = currentItem;
-  modal.setAttribute('aria-hidden', 'false');
-  document.body.classList.add('no-scroll');
-  requestAnimationFrame(() => modal.classList.add('open'));
-}
-
-function closeModal() {
-  modal.classList.remove('open');
-  modal.setAttribute('aria-hidden', 'true');
-  document.body.classList.remove('no-scroll');
-  setTimeout(() => modalImg.src = '', 300);
-}
-
-modalClose.addEventListener('click', closeModal);
-modal.addEventListener('click', (e) => {
-  if (e.target === modal) closeModal();
-});
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
-});
-
-// ---- Choice Modal ----
-const choiceModalHtml = `
-<div id="choice-modal" class="choice-modal" aria-hidden="true">
-  <div class="choice-modal-card">
-    <button class="choice-close" aria-label="Close">&times;</button>
-    <h2>Choose Your Gift</h2>
-    <div class="choice-buttons">
-      <a id="choice-free-btn" class="choice-button free" target="_blank" rel="noopener">🎁 Free Content</a>
-      <a id="choice-premium-btn" class="choice-button premium" target="_blank" rel="noopener">💎 Premium Content (go to store)</a>
-    </div>
-  </div>
-</div>
-`;
-document.body.insertAdjacentHTML('beforeend', choiceModalHtml);
+// --- Modal elements ---
+const igModal = document.getElementById("ig-modal");
+const igModalImg = document.getElementById("ig-modal-img");
+const modalToast = document.getElementById("modal-toast");
 
 const choiceModal = document.getElementById("choice-modal");
-const choiceFreeBtn = document.getElementById("choice-free-btn");
-const choicePremiumBtn = document.getElementById("choice-premium-btn");
-const choiceClose = document.querySelector(".choice-close");
+const choiceClose = document.getElementById("choice-close");
+const choiceFreeBtn = document.getElementById("choice-free");
+const choicePremiumBtn = document.getElementById("choice-premium");
 
-function openChoiceModal(freeLink, premiumLink) {
-  choiceFreeBtn.href = freeLink || "#";
-  choicePremiumBtn.href = premiumLink || "#";
+// --- Helpers: open/close IG (preview) modal ---
+function openIgModal(imageSrc, item) {
+  igModalImg.src = imageSrc || "";
+  igModal.currentItem = item; // store entire item for later
+  igModal.classList.add("open");
+  igModal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("no-scroll");
+
+  // show toast (keep until close)
+  modalToast.setAttribute("aria-hidden", "false");
+  modalToast.classList.add("show");
+}
+
+function closeIgModal() {
+  igModal.classList.remove("open");
+  igModal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("no-scroll");
+  modalToast.setAttribute("aria-hidden", "true");
+  modalToast.classList.remove("show");
+  // clear image after short delay for nice animation
+  setTimeout(() => { igModalImg.src = ""; delete igModal.currentItem; }, 220);
+}
+
+// --- Helpers: open/close choice modal ---
+function openChoiceModal(item) {
+  if (item && item.freeLink) {
+    choiceFreeBtn.style.display = "block";
+    choiceFreeBtn.href = item.freeLink;
+  } else {
+    choiceFreeBtn.style.display = "none";
+  }
+
+  if (item && item.premiumLink) {
+    choicePremiumBtn.style.display = "block";
+    choicePremiumBtn.href = item.premiumLink;
+  } else {
+    choicePremiumBtn.style.display = "none";
+  }
+
+  choiceModal.classList.add("open");
   choiceModal.setAttribute("aria-hidden", "false");
   document.body.classList.add("no-scroll");
-  requestAnimationFrame(() => choiceModal.classList.add("open"));
 }
 
 function closeChoiceModal() {
@@ -283,12 +264,8 @@ function closeChoiceModal() {
   choiceModal.setAttribute("aria-hidden", "true");
   document.body.classList.remove("no-scroll");
 }
-choiceClose.addEventListener("click", closeChoiceModal);
-choiceModal.addEventListener("click", (e) => {
-  if (e.target === choiceModal) closeChoiceModal();
-});
 
-// ---- Build Calendar UI ----
+// --- Build calendar ---
 days.forEach(item => {
   const box = document.createElement("div");
   box.className = "day";
@@ -297,26 +274,23 @@ days.forEach(item => {
   const content = document.createElement("div");
   content.className = "content";
   content.innerHTML = `<img class="thumb" src="${item.thumb}" alt="Day ${item.day} thumbnail" />`;
-  box.appendChild(content);
 
-  if (!openedDays.includes(item.day)) {
+  // If already opened (persisted), show open
+  if (openedDays.includes(item.day)) {
+    box.classList.add("open");
+  } else {
+    // create door only if not opened
     const door = document.createElement("div");
     door.className = "door";
     door.textContent = item.day;
     if (item.day > TODAY) box.classList.add("locked");
     box.appendChild(door);
 
-    box.addEventListener("click", () => {
+    // door click opens the door (and persists)
+    door.addEventListener("click", (e) => {
+      e.stopPropagation();
       if (item.day > TODAY) {
-        door.animate([{
-          transform: 'translateY(0)'
-        }, {
-          transform: 'translateY(-6px)'
-        }, {
-          transform: 'translateY(0)'
-        }], {
-          duration: 180
-        });
+        door.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-6px)' }, { transform: 'translateY(0)' }], { duration: 180 });
         return;
       }
       box.classList.add("open");
@@ -324,45 +298,83 @@ days.forEach(item => {
         openedDays.push(item.day);
         localStorage.setItem("openedDays", JSON.stringify(openedDays));
       }
-      setTimeout(() => {
-        if (door.parentNode) door.remove();
-      }, 620);
+      setTimeout(() => { if (door.parentNode) door.remove(); }, 620);
     });
-  } else {
-    box.classList.add("open");
-    const existingDoor = box.querySelector('.door');
-    if (existingDoor) existingDoor.remove();
   }
 
-  content.addEventListener('click', (e) => {
-    if (box.classList.contains('locked')) return;
-    const thumb = e.target.closest('.thumb');
+  // Append content last so it sits under door visually when closed.
+  box.appendChild(content);
+
+  // When the thumbnail content is clicked:
+  content.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (box.classList.contains("locked")) return;
+    const thumb = e.target.closest(".thumb");
     if (!thumb) return;
 
-    // ---- Step 1: open full-size image modal ----
-    openModal(item.freeImage, item.premiumLink);
-
-    // ---- Step 2: store current item globally for modal click ----
-    modal.currentItem = item;
-  });
-
-  modalImg.addEventListener('click', () => {
-    const item = modal.currentItem;
-    if (!item) return;
-
-    if (item.type === "choice") {
-        closeModal(); // optional: close full-size first
-        openChoiceModal(item.freeLink, item.premiumLink);
-    } else if (item.type === "auto") {
-        closeModal(); // optional
-        window.open(item.premiumLink, "_blank");
+    // mark opened if not yet
+    if (!openedDays.includes(item.day)) {
+      openedDays.push(item.day);
+      localStorage.setItem("openedDays", JSON.stringify(openedDays));
+      // remove any door element and add .open class
+      const doorEl = box.querySelector(".door");
+      if (doorEl) doorEl.remove();
+      box.classList.add("open");
     }
-});
+
+    // open the big preview image (freeImage)
+    openIgModal(item.freeImage, item);
+  });
 
   calendarEl.appendChild(box);
 });
 
-// ---- Music + Dark Mode ----
+// --- Click on big image: open choice modal or open premium if auto/no freeLink ---
+igModalImg.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const item = igModal.currentItem;
+  if (!item) return;
+
+  // If no free link or type auto -> go directly to premium
+  if (!item.freeLink || item.type === "auto") {
+    if (item.premiumLink) {
+      // open in new tab and close preview
+      window.open(item.premiumLink, "_blank");
+      closeIgModal();
+    }
+    return;
+  }
+
+  // Otherwise (freeLink exists) -> close preview and open choice modal
+  closeIgModal();
+  openChoiceModal(item);
+});
+
+// --- Close modals on outside clicks ---
+igModal.addEventListener("click", (e) => {
+  if (e.target === igModal) closeIgModal();
+});
+choiceModal.addEventListener("click", (e) => {
+  if (e.target === choiceModal) closeChoiceModal();
+});
+
+// choice close button
+choiceClose.addEventListener("click", closeChoiceModal);
+
+// ESC handling: close topmost first (choice -> preview)
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    if (choiceModal.classList.contains("open")) {
+      closeChoiceModal();
+    } else if (igModal.classList.contains("open")) {
+      closeIgModal();
+    }
+  }
+});
+
+// ---------------------------
+// Music & Dark Mode (unchanged)
+// ---------------------------
 const musicBtn = document.getElementById("music-toggle");
 const darkBtn = document.getElementById("dark-toggle");
 const music = document.getElementById("christmas-music");
@@ -381,12 +393,10 @@ musicBtn.addEventListener("click", () => {
 });
 document.body.addEventListener("click", () => {
   music.play().catch(() => {});
-}, {
-  once: true
-});
+}, { once: true });
 
 darkBtn.addEventListener("click", () => {
-  if (document.activeElement) document.activeElement.blur(); // remove focus
+  if (document.activeElement) document.activeElement.blur();
   document.body.classList.toggle("dark-mode");
   darkBtn.textContent = document.body.classList.contains("dark-mode") ? "☀️ Light Mode" : "🌙 Dark Mode";
 });

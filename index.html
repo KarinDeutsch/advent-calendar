@@ -1,36 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <title>GoldenEgg Advent Calendar</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GoldenEgg Advent Calendar</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
 
-    <header>
-        <img class="santa-image" src="21590.jpg" alt="santa">
-        <div class="header-main">
-            <img src="goldenegg_logo.jpg" alt="Logo">
-            <h1>GoldenEgg Advent Calendar</h1>
-        </div>
-        <div class="subtitle">Daily Mindful Gifts</div>
-    </header>
-
-    <div class="controls">
-        <button id="music-toggle">🎵 Music On</button>
-        <button id="dark-toggle">🌙 Dark Mode</button>
+  <header>
+    <img class="santa-image" src="21590.jpg" alt="santa">
+    <div class="header-main">
+      <img src="goldenegg_logo.jpg" alt="Logo">
+      <h1>GoldenEgg Advent Calendar</h1>
     </div>
+    <div class="subtitle">Daily Mindful Gifts</div>
+  </header>
 
-    <audio id="christmas-music" loop>
-        <source src="jingle-bells.mp3" type="audio/mpeg">
-    </audio>
+  <div class="controls">
+    <button id="music-toggle">🎵 Music On</button>
+    <button id="dark-toggle">🌙 Dark Mode</button>
+  </div>
 
-    <div class="calendar"></div>
+  <audio id="christmas-music" loop>
+    <source src="jingle-bells.mp3" type="audio/mpeg" />
+  </audio>
 
-    <script src="script.js"></script>
+  <div class="calendar"></div>
+
+  <!-- Full-size preview modal (IG modal) -->
+  <div id="ig-modal" class="ig-modal" aria-hidden="true">
+    <div class="ig-modal-card" role="dialog" aria-modal="true">
+      <div class="ig-media">
+        <img id="ig-modal-img" src="" alt="Preview image">
+      </div>
+      <div class="ig-caption">
+        <p class="ig-caption-text">Press Esc to go back.</p>
+      </div>
+      <!-- small toast shown when modal opens -->
+      <div id="modal-toast" class="modal-toast" aria-hidden="true">Press Esc to go back</div>
+    </div>
+  </div>
+
+  <!-- Choice modal -->
+  <div id="choice-modal" class="choice-modal" aria-hidden="true">
+    <div class="choice-modal-card" role="dialog" aria-modal="true">
+      <button class="choice-close" id="choice-close" aria-label="Close">&times;</button>
+      <h2>Choose Your Content</h2>
+      <div class="choice-buttons">
+        <a id="choice-free" class="choice-button free" target="_blank" rel="noopener">🎁 Free Content</a>
+        <a id="choice-premium" class="choice-button premium" target="_blank" rel="noopener">💎 Premium Content</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
-
 </html>
